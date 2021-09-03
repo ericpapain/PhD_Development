@@ -1,0 +1,12 @@
+/*********************************************
+ * OPL 20.1.0.0 Data
+ * Author: epmezatio
+ * Creation Date: 23 août 2021 at 17:54:05
+ *********************************************/
+
+ // connection a une base de donnée acces
+ 
+ DBConnection db("acces","day 1 - acces.accdb");
+ 
+ cargos,cargosData from DBRead(db,"SELECT Name, Weight, Volume, Profit FROM Cargos");
+ comps,compssData from DBRead(db,"SELECT Name, WeightCap, SpaceCap FROM Compartments");

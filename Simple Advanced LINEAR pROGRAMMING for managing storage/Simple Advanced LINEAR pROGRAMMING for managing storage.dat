@@ -1,0 +1,31 @@
+/*********************************************
+ * OPL 20.1.0.0 Data
+ * Author: epmezatio
+ * Creation Date: 23 août 2021 at 15:33:18
+ *********************************************/
+
+// definition de l'ensemble des cargo et des compartiment de l'avion
+ n=4;
+ m=3;
+ 
+ SheetConnection my_sheet("day 1 - excel.xlsx"); //connection au fichier excel pour recupérer la data
+ 
+ 
+ // profit from SheetRead(my_sheet,"'LP example' !H2:H5"); // sa c'est dans le cas ou les colone du tableau ne sonst pas nommé dans excel'
+ 
+ // si nous les avons nommé ont peut juste les appeler avec leurs noms
+ 
+ 
+ // lecture des elements du fichier excel
+ profit from SheetRead(my_sheet,"profit");
+ weight from SheetRead(my_sheet,"weight");
+ volume from SheetRead(my_sheet,"volume");
+ 
+ weight_cap from SheetRead(my_sheet,"weight_cap");
+ space_cap from SheetRead(my_sheet,"space_cap");
+ 
+ // ecriture du resultat dans le fichier excel
+ // n'oublie surtous pas le fait de nommer la case ou tu veux voir s'afficher le resultat'
+ x to SheetWrite(my_sheet,"resultats_pb");
+ y to SheetWrite(my_sheet,"valeur_y");
+ volume to SheetWrite(my_sheet,"volume_out");
