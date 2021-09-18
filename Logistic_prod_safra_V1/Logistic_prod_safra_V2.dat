@@ -1,0 +1,119 @@
+/*********************************************
+ * OPL 20.1.0.0 Data
+ * Author: epmezatio
+ * Creation Date: 3 sept. 2021 at 11:41:10
+ *********************************************/
+
+ J=1;
+ K=1;
+ U=1;
+ V=1;
+ I=20;
+ L=1;
+ P=10;
+ T=1;
+ 
+ CT = [
+ 
+ 	[//k = 0
+ 	
+ 		[//j=0
+ 			[//p=0
+ 				[//l=0
+					0, 3
+ 				],
+ 				[
+ 				]
+ 			],
+ 			[
+ 			],
+ 			[
+ 			]
+ 		],
+ 		[//j=1
+ 			[//p=0
+ 				[//l=0
+					0, 3
+ 				],
+ 				[
+ 				]
+ 			],
+ 			[
+ 			],
+ 			[
+ 			]
+ 		]
+ 	
+ 	],
+ 		
+ 	[// k=1
+ 		[//j=0
+ 			[//p=0
+ 				[//l=0
+					0, 3
+ 				],
+ 				[
+ 				]
+ 			],
+ 			[
+ 			],
+ 			[
+ 			]
+ 		],
+ 		[//j=1
+ 			[//p=0
+ 				[//l=0
+					0, 3
+ 				],
+ 				[
+ 				]
+ 			],
+ 			[
+ 			],
+ 			[
+ 			]
+ 		]
+ 	],
+ 	
+ 	[//k=2
+ 	
+ 		[//j=0
+ 			[//p=0
+ 				[//l=0
+					0, 3
+ 				],
+ 				[
+ 				]
+ 			],
+ 			[
+ 			],
+ 			[
+ 			]
+ 		],
+ 		[//j=1
+ 			[//p=0
+ 				[//l=0
+					0, 3
+ 				],
+ 				[
+ 				]
+ 			],
+ 			[
+ 			],
+ 			[
+ 			]
+ 		]
+ 	
+ 	]
+ 
+ ]
+ 
+ 
+  SheetConnection data_test("Cas_experimental.xlsx"); //connection au fichier excel pour recupérer la data
+ 
+ 
+ // lecture des elements du fichier excel
+ 
+ CF from SheetRead(data_test,"demandes_clients");
+ weight from SheetRead(data_test,"weight");
+ volume from SheetRead(data_test,"volume");
