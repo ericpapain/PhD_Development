@@ -44,7 +44,7 @@ float CR[raw_materials][products]=...;
 float CPF[products][manufacturing_plants]=...;
 
 // Capital costs of establishing plant f
-float CCF[manufacturing_plants]=...;
+//float CCF[manufacturing_plants]=...;
 
 // Annualized capital costs of establishing plant f
 float ACF[manufacturing_plants]=...;
@@ -59,7 +59,7 @@ float EMP[products]=...;
 float CPW[products][warehouses]=...;
 
 // Capital costs of establishing warehouse w
-float CCW[warehouses]=...;
+//float CCW[warehouses]=...;
 
 // Annualized capital costs of establishing warehouse w
 float ACW[warehouses]=...;
@@ -89,7 +89,7 @@ float EMT[trans_mode]=...;
 float DM[products][customers]=...;
 
 // Market price per unit of CO2 emissions allowance
-float cp = 125.0;
+float cp=...;
 
 
 							/**************** Decision variables *************/
@@ -145,7 +145,7 @@ subject to {
 	//La contrainte (7) garantit que la quantité de chaque matière première, r, fournie par chaque fournisseur,s, ne doit pas dépasser la capacité correspondante
 	forall(r in raw_materials, s in suppliers)	
 	  	c1:
-		sum(f in manufacturing_plants) AS[r][s][f] <= CPS[r][s];
+		sum(f in manufacturing_plants) AS[r][s][f] <= CPS[r][s]*SI[s];
 	
 	//La contrainte (8) garantit que pour chaque usine, f, la quantité totale de produit, p, qu'elle produit doit être dans sa capacité pour ce produit
 	forall(f in manufacturing_plants, p in products)	
@@ -185,6 +185,6 @@ subject to {
 	//La contrainte (15) garantit que la production totale du produit p de toutes les usines doit répondre à la demande totale de tous les clients
 	forall(p in products, n in customers)	// , f in manufacturing_plants, n in customers
 	  	c9:
-		sum(f in manufacturing_plants) AF[p][f] == DM[p][n];  
+		sum(f in manufacturing_plants) AF[p][f] == sum(n in customers) DM[p][n];  
 
 }
