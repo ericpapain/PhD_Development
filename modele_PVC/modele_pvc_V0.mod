@@ -26,28 +26,28 @@ range customers = 1..N;
 								/******************************** Model parameters *********************/
 
 // Capacity of raw material r provided by supplier s
-float CPS[raw_materials][suppliers]=...;
+int CPS[raw_materials][suppliers]=...;
 
 // Selection costs of supplier s
-float SLC[suppliers]=...;
+int SLC[suppliers]=...;
 
 // Life cycle CO2 emissions per unit of raw material r provided by supplier s
-//float ems[raw_materials][suppliers]=...;
+float EMS[raw_materials][suppliers]=...;
 
 // Price per unit of raw material r provided by supplier s
 float PRS[raw_materials][suppliers]=...;
 
 // Conversion rate of raw material r to product p
-float CR[raw_materials][products]=...;
+int CR[raw_materials][products]=...;
 
 // Capacity of product p produced by plant f
-float CPF[products][manufacturing_plants]=...;
+int CPF[products][manufacturing_plants]=...;
 
 // Capital costs of establishing plant f
 //float CCF[manufacturing_plants]=...;
 
 // Annualized capital costs of establishing plant f
-float ACF[manufacturing_plants]=...;
+int ACF[manufacturing_plants]=...;
 
 // Variable costs of producing one unit of product p
 float VCF[products]=...;
@@ -56,13 +56,13 @@ float VCF[products]=...;
 float EMP[products]=...;
 
 // Storage capacity of product p in warehouse w
-float CPW[products][warehouses]=...;
+int CPW[products][warehouses]=...;
 
 // Capital costs of establishing warehouse w
 //float CCW[warehouses]=...;
 
 // Annualized capital costs of establishing warehouse w
-float ACW[warehouses]=...;
+int ACW[warehouses]=...;
 
 // Unit transportation costs for shipping a unit of raw material from supplier s to plant f through mode t
 float TCS[suppliers][manufacturing_plants][trans_mode]=...;
@@ -86,7 +86,7 @@ float DTW[trans_mode][warehouses][customers]=...;
 float EMT[trans_mode]=...;
 
 // Demand for product p from customer n
-float DM[products][customers]=...;
+int DM[products][customers]=...;
 
 // Market price per unit of CO2 emissions allowance
 float cp=...;
@@ -96,19 +96,19 @@ float cp=...;
 							
 							
 // Amount of raw material r provided by supplier s to plant f
-dvar float+ AS[raw_materials][suppliers][manufacturing_plants];
+dvar int+ AS[raw_materials][suppliers][manufacturing_plants];
 
-// Amount of product p transported from supplier s to plant f by mode t
-dvar float+ TS[raw_materials][trans_mode][suppliers][manufacturing_plants];
+// Amount of raw_material r transported from supplier s to plant f by mode t
+dvar int+ TS[raw_materials][trans_mode][suppliers][manufacturing_plants];
 
 // Amount of product p produced by plant f
-dvar float+ AF[products][manufacturing_plants];
+dvar int+ AF[products][manufacturing_plants];
 
 // Amount of product p transported from plant f to warehouse w through transportation mode t
-dvar float+ TF[products][trans_mode][manufacturing_plants][warehouses];
+dvar int+ TF[products][trans_mode][manufacturing_plants][warehouses];
 
 // Amount of product p transported from warehouse w to customer n through transportation mode t
-dvar float+ TW[products][trans_mode][warehouses][customers];
+dvar int+ TW[products][trans_mode][warehouses][customers];
 
 // 1, If supplier is selected 0, otherwise
 dvar boolean SI[suppliers];
@@ -123,18 +123,18 @@ dvar boolean SW[warehouses];
 							/**************** Objectif function *************/
 
 dexpr float z = ( (sum(r in raw_materials, s in suppliers, f in manufacturing_plants) PRS[r][s]*AS[r][s][f] + 
-				     cp*(sum(r in raw_materials, s in suppliers, f in manufacturing_plants) AS[r][s][f]) + 
-				     sum(s in suppliers) SLC[s]*SI[s])/* PC = The procurement costs*/ +
+				     (sum(r in raw_materials, s in suppliers, f in manufacturing_plants) cp*EMS[r][s]*AS[r][s][f]) + 
+				     sum(s in suppliers) SLC[s]*SI[s])/* PC = The procurement costs */ +
 				  (sum(f in manufacturing_plants) ACF[f]*SF[f] + 
 				     sum(p in products, f in manufacturing_plants) VCF[p]*AF[p][f] +
-				     cp*(sum(p in products, f in manufacturing_plants) EMP[p]*AF[p][f]) + 
-				     sum(w in warehouses) ACW[w]*SW[w])/* MC = The manufacturing and storage costs*/ +
+				     (sum(p in products, f in manufacturing_plants) cp*EMP[p]*AF[p][f]) + 
+				     sum(w in warehouses) ACW[w]*SW[w])/* MC = The manufacturing and storage costs*/+
 				  (sum(r in raw_materials, t in trans_mode, s in suppliers, f in manufacturing_plants) DTS[t][s][f]*TCS[s][f][t]*TS[r][t][s][f] +
-				     cp*(sum(r in raw_materials, t in trans_mode, s in suppliers, f in manufacturing_plants) EMT[t]*DTS[t][s][f]*TS[r][t][s][f]) +
+				     (sum(r in raw_materials, t in trans_mode, s in suppliers, f in manufacturing_plants) cp*EMT[t]*DTS[t][s][f]*TS[r][t][s][f]) +
 				     sum(p in products, t in trans_mode, f in manufacturing_plants, w in warehouses) TCF[t][f][w]*DTF[t][f][w]*TF[p][t][f][w] +  
-				     cp*(sum(p in products, t in trans_mode, f in manufacturing_plants, w in warehouses) EMT[t]*DTF[t][f][w]*TF[p][t][f][w]) + 
+				     (sum(p in products, t in trans_mode, f in manufacturing_plants, w in warehouses) cp*EMT[t]*DTF[t][f][w]*TF[p][t][f][w]) + 
 				     sum(p in products, t in trans_mode, w in warehouses, n in customers) TCW[t][w][n]*DTW[t][w][n]*TW[p][t][w][n] + 
-				     cp*(sum(p in products, t in trans_mode, w in warehouses, n in customers) EMT[t]*DTW[t][w][n]*TW[p][t][w][n]) /*TC = The transportation costs*/));
+				     (sum(p in products, t in trans_mode, w in warehouses, n in customers) cp*EMT[t]*DTW[t][w][n]*TW[p][t][w][n]) /*TC = The transportation costs*/));
 				     
 // objective		 
 minimize z;				 
@@ -142,47 +142,73 @@ minimize z;
 				     		
 
 subject to {
-	//La contrainte (7) garantit que la quantité de chaque matière première, r, fournie par chaque fournisseur,s, ne doit pas dépasser la capacité correspondante
+	////La contrainte (7) garantit que la quantité de chaque matière première, r, fournie par chaque fournisseur,s, ne doit pas dépasser la capacité correspondante
 	forall(r in raw_materials, s in suppliers)	
 	  	c1:
 		sum(f in manufacturing_plants) AS[r][s][f] <= CPS[r][s]*SI[s];
 	
 	//La contrainte (8) garantit que pour chaque usine, f, la quantité totale de produit, p, qu'elle produit doit être dans sa capacité pour ce produit
+	//forall(f in manufacturing_plants, p in products)	
+	  //	c2:
+		//sum(p in products) AF[p][f] <= CPF[p][f]*SF[f];
+		
+	////La contrainte (8) garantit que pour chaque usine, f, la quantité totale de produit, p, qu'elle produit doit être dans sa capacité pour ce produit
 	forall(f in manufacturing_plants, p in products)	
 	  	c2:
-		sum(p in products) AF[p][f] <= CPF[p][f]*SF[f];	
+		AF[p][f] <= CPF[p][f]*SF[f];	
 		
-	//La contrainte (9) applique la limitation de stockage en entrepôt selon laquelle la quantité de tous les produits envoyés à l'entrepôt w ne doit pas être supérieure à sa capacité	
+	//La contrainte rassure que la qunatité de matières premières livré est la qunatié de matière indispensable pour la réalisation de la commande par produit
+	//forall(f in manufacturing_plants, r in raw_materials, p in products)	
+	 //	ccr:
+		//sum(n in customers) DM[p][n]*CR[r][p] == sum(s in suppliers, f in manufacturing_plants) AS[r][s][f];	
+		
+	////La contrainte (9) applique la limitation de stockage en entrepôt selon laquelle la quantité de tous les produits envoyés à l'entrepôt w ne doit pas être supérieure à sa capacité	
 	forall(p in products, w in warehouses, f in manufacturing_plants)	//p in products, t in trans_mode, f in manufacturing_plants, 
 	  	c3:
-		sum(p in products, t in trans_mode, f in manufacturing_plants) TF[p][t][f][w] <= CPW[p][w]*SW[w];  
+		sum(t in trans_mode, f in manufacturing_plants) TF[p][t][f][w] <= CPW[p][w]*SW[w];  
 	
-	//La contrainte (10) montre que la quantité de chaque matière première r du fournisseur s à l'usine f est égale à la quantité totale de cette matière première r transportée par tous les modes entre les mêmes nœuds
+	////La contrainte (10) montre que la quantité de chaque matière première r du fournisseur s à l'usine f est égale à la quantité totale de cette matière première r transportée par tous les modes entre les mêmes nœuds
 	forall(r in raw_materials, s in suppliers, f in manufacturing_plants)	//,  t in trans_mode
 	  	c4: 
 		AS[r][s][f] == sum(t in trans_mode) TS[r][t][s][f];
 	
 	//La contrainte (11) représente la relation de bilan massique entre l'entrée de matière première introduite dans le processus de fabrication et la sortie de celui-ci
-	forall(r in raw_materials, f in manufacturing_plants,  p in products)	//s in suppliers,  p in products, 
-	  	c5:
-		CR[r][p]*(sum(s in suppliers) AS[r][s][f]) == sum(p in products) AF[p][f];
+	//forall(r in raw_materials, f in manufacturing_plants,  p in products)	//s in suppliers,  p in products, 
+	  //	c5:
+		//CR[r][p]*(sum(s in suppliers) AS[r][s][f]) == sum(p in products) AF[p][f];
 	
-	// La contrainte (12) garantit que la sortie du produit p de l'usine f est égale à la quantité totale de ce produit de la même usine vers tous les entrepôts via tous les modes de transport
+	/////////////////////// putain de contrainte qui fonctionne maintenant faut verifier 
+	//forall(r in raw_materials, f in manufacturing_plants,  p in products)	//s in suppliers,  p in products, 
+	  //	c555555555:
+		//sum(p in products, f in manufacturing_plants) (AF[p][f]*CR[r][p]) == sum(f in manufacturing_plants, s in suppliers) AS[r][s][f];
+	
+	//// putain de contrainte qui fonctionne maintenant faut verifier 
+	forall(r in raw_materials, f in manufacturing_plants,  p in products)	//s in suppliers,  p in products, 
+	  	c999999999:
+		sum(p in products) (AF[p][f]*CR[r][p]) == sum(s in suppliers) AS[r][s][f];
+		
+	
+	//forall(r in raw_materials, f in manufacturing_plants,  p in products)	//s in suppliers,  p in products, 
+	  	//c5:
+		//CR[r][p]*sum(f in manufacturing_plants) AF[p][f] == sum(s in suppliers, f in manufacturing_plants) AS[r][s][f];
+	
+	//// La contrainte (12) garantit que la sortie du produit p de l'usine f est égale à la quantité totale de ce produit de la même usine vers tous les entrepôts via tous les modes de transport
 	forall(p in products, f in manufacturing_plants)	// t in trans_mode, , w in warehouses
 	  	c6:
 		AF[p][f] == sum(t in trans_mode, w in warehouses) TF[p][t][f][w];
+		
 	
-	//La contrainte (13) formule le solde d'entrée et de sortie de chaque produit dans chaque entrepôt
+	////La contrainte (13) formule le solde d'entrée et de sortie de chaque produit dans chaque entrepôt
 	forall(p in products, w in warehouses)	// t in trans_mode, f in manufacturing_plants, 
 	  	c7:
 		sum(t in trans_mode, f in manufacturing_plants) TF[p][t][f][w] == sum(t in trans_mode, n in customers) TW[p][t][w][n];
 	
-	//La contrainte (14) impose que la sortie du produit p de l'entrepôt w vers le client n réponde à la demande de ce produit du client n
+	////La contrainte (14) impose que la sortie du produit p de l'entrepôt w vers le client n réponde à la demande de ce produit du client n
 	forall(p in products, n in customers)	// t in trans_mode, w in warehouses,  
 	  	c8:
 		sum(t in trans_mode, w in warehouses) TW[p][t][w][n] == DM[p][n];
 	
-	//La contrainte (15) garantit que la production totale du produit p de toutes les usines doit répondre à la demande totale de tous les clients
+	////La contrainte (15) garantit que la production totale du produit p de toutes les usines doit répondre à la demande totale de tous les clients
 	forall(p in products, n in customers)	// , f in manufacturing_plants, n in customers
 	  	c9:
 		sum(f in manufacturing_plants) AF[p][f] == sum(n in customers) DM[p][n];  
